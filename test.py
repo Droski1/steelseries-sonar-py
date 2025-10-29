@@ -52,7 +52,28 @@ def test_streamer_mode():
     except ServerNotAccessibleError as e:
         print(f"Server not accessible, status code: {e.status_code}")
 
+# Error: 
+def test_device_change():
+    try:
+        sonar = Sonar()
+        
+        result = sonar.get_audio_devices()
+
+        print('Displaying available audio devices with no certan order:')
+        for device in result:
+            print(device['id'], device['friendlyName'])
+
+        
+
+    except EnginePathNotFoundError:
+        print("Engine not found!")
+    except ServerNotAccessibleError as e:
+        print(f"Server not accessible, status code: {e.status_code}")
+
+
 if __name__ == "__main__":
     test_classic_mode()
     print("\n\n--------------------------------\n\n")
     test_streamer_mode()
+    print("\n\n--------------------------------\n\n")
+    test_device_change()

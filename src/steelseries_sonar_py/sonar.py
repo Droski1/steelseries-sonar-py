@@ -2,8 +2,10 @@ import requests
 import json
 import os
 
-from . import exceptions as ex
-
+try:
+    from . import exceptions as ex
+except ImportError:
+    import exceptions as ex
 
 
 class Sonar:
@@ -156,3 +158,59 @@ class Sonar:
             raise ex.ServerNotAccessibleError(chat_mix_data.status_code)
 
         return json.loads(chat_mix_data.text)
+
+    ## Note: Copyed functionality from get_chat_mix_data, needs to be implemented properly and documented
+    def get_audio_devices(self):
+        # Wireshark capture as reference:
+        #20220	680.831222	127.0.0.1	127.0.0.1	HTTP	578	GET /audioDevices HTTP/1.1 
+
+        url = self.web_server_address + "/audioDevices"
+        
+        audio_devices_data = requests.get(url)
+        if audio_devices_data.status_code != 200:
+            raise ex.ServerNotAccessibleError(audio_devices_data.status_code)
+
+        return json.loads(audio_devices_data.text)
+
+    # Use get_audio_devices to get the device IDs
+    def set_audio_device(self, device_id, streamer_slider="streaming"):
+        # Wireshark capture as reference:
+        #69336	2825.369295	127.0.0.1	127.0.0.1	HTTP	687	PUT /streamRedirections/monitoring/deviceId/%7B0.0.0.00000000%7D.%7Be5fc5284-587d-453c-94ad-688914a8f610%7D HTTP/1.1 
+
+        url = f"{self.web_server_address}/streamRedirections/{streamer_slider}/deviceId/{device_id}"
+        personal_device_data = requests.put(url)
+
+        if personal_device_data.status_code != 200:
+            raise ex.ServerNotAccessibleError(personal_device_data.status_code)
+        
+        return json.loads(personal_device_data.text)
+    
+    def set_app_channel(self):
+        # Wireshark capture as reference:
+        # 159088	5850.097544	127.0.0.1	127.0.0.1	HTTP	680	PUT /AudioDeviceRouting/render/%7B0.0.0.00000000%7D.%7B34869e41-cf12-4bec-ba8c-20d7a3f8b2e3%7D/17936 HTTP/1.1 
+
+        pass
+
+    def get_audio_device_routing(self):
+        
+        url = f"{self.web_server_address}/AudioDeviceRouting"
+
+        personal_device_data = requests.get(url)
+
+        if personal_device_data.status_code != 200:
+            raise ex.ServerNotAccessibleError(personal_device_data.status_code)
+        
+        return json.loads(personal_device_data.text)
+        pass
+
+if __name__ == "__main__":
+    sonar = Sonar("C:\\ProgramData\\SteelSeries\\SteelSeries Engine 3\\coreProps.json")
+    AudioDevices = sonar.get_audio_devices()
+    print(sonar.get_socket())
+
+    #for device in AudioDevices:
+    #    #print(f'{device['friendlyName']} {device["id"]}')
+    #
+    #    if device['friendlyName'] == "Speakers (Stealth 700P Gen 3)":
+    #        print(device["id"])
+    #        #sonar.set_audio_device(device["id"], "streaming")
